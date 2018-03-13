@@ -1,0 +1,4 @@
+*.swp
+.idea/
+*.py[cd]
+env/
