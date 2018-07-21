@@ -2,3 +2,5 @@
 .idea/
 *.py[cd]
 env/
+
+config.py
