@@ -21,27 +21,36 @@ def hello_world():
 
 
 def tweet_to_html(tweet):
-    txt0 = re.sub(
-        r'(http[\w:/.?&#]{5,})',
-        r'<a class="link" href="\1">\1</a>',
-        tweet.text
-    )
-    txt1 = re.sub(
-        r'@(\w+)',
-        r'<a class="at" href="https://twitter.com/\1">@\1</a>',
-        txt0
-    )
+    txt0 = re.sub(r'(http[\w:/.?&#]{5,})', r'<a class="link" href="\1">\1</a>',
+                  tweet.text)
+    txt1 = re.sub(r'@(\w+)',
+                  r'<a class="at" href="https://twitter.com/\1">@\1</a>', txt0)
     return txt1
+
 
 def get_user_info(user):
     keys = [
-        'created_at', 'description', 'followers_count', 'following',
-        'friends_count', 'lang', 'location', 'muting', 'name',
-        'profile_background_image_url', 'profile_background_image_url_https',
-        'profile_image_url', 'profile_image_url_https',
-        'protected', 'screen_name', 'statuses_count',
+        'created_at',
+        'description',
+        'followers_count',
+        'following',
+        'friends_count',
+        'lang',
+        'location',
+        'muting',
+        'name',
+        'profile_background_image_url',
+        'profile_background_image_url_https',
+        'profile_image_url',
+        'profile_image_url_https',
+        'protected',
+        'screen_name',
+        'statuses_count',
     ]
-    return {k: getattr(user, k) if k != 'created_at' else str(getattr(user, k)) for k in keys}
+    return {
+        k: getattr(user, k) if k != 'created_at' else str(getattr(user, k))
+        for k in keys
+    }
 
 
 @app.route('/followers')
@@ -65,13 +74,23 @@ def followers():
     return resp
 
 
+def get_return_value(tweets, request):
+    if request.args.get('raw'):
+        rv_data = [x._json for x in tweets]
+    else:
+        rv_data = [parse(x) for x in tweets]
+    return rv_data
+
+
 @app.route('/tweets')
 def tweets():
     my_tweets = API.user_timeline(
         id=request.args.get('id', app_conf['twitter_id']),
         count=request.args.get('count', 20),
         page=request.args.get('page', 0))
-    rv = json.dumps([parse(x) for x in my_tweets], ensure_ascii=False)
+
+    rv_data = get_return_value(my_tweets, request)
+    rv = json.dumps(rv_data, ensure_ascii=False)
 
     resp = Response(rv)
     resp.headers['Access-Control-Allow-Origin'] = '*'
@@ -85,7 +104,9 @@ def favorites():
         id=request.args.get('id', app_conf['twitter_id']),
         count=request.args.get('count', 20),
         page=request.args.get('page', 0))
-    rv = json.dumps([parse(x) for x in my_tweets], ensure_ascii=False)
+
+    rv_data = get_return_value(my_tweets, request)
+    rv = json.dumps(rv_data, ensure_ascii=False)
 
     resp = Response(rv)
     resp.headers['Access-Control-Allow-Origin'] = '*'
